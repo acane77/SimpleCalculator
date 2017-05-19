@@ -5,7 +5,7 @@ using namespace std;
 
 namespace Miyuki {
 
-    deque<Quad> quads;
+    std::deque<Quad> quads;
     map<int, int> labels;
 
     void EmitQuad(int o, Factor *o1, Factor *o2, Factor * re) {

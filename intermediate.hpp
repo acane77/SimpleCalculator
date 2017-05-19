@@ -25,6 +25,8 @@ namespace Miyuki {
         }
     };
 
+    extern std::deque<Quad> quads;
+
     void EmitQuad(int o, Factor * o1, Factor * o2, Factor * re);
     void replace();
     void emitLabel(int n);

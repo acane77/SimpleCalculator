@@ -1,5 +1,5 @@
-parser: build/lexer.o build/token.o build/main.o build/parser.o build/symbols.o build/intermediate.o
-	g++ -o parser build/lexer.o build/token.o build/main.o build/parser.o build/symbols.o build/intermediate.o
+parser: build/lexer.o build/token.o build/main.o build/parser.o build/symbols.o build/intermediate.o build/interpreter.o
+	g++ -o parser build/lexer.o build/token.o build/main.o build/parser.o build/symbols.o build/intermediate.o build/interpreter.o
 
 build/lexer.o: lexer.hpp lexer.cpp
 	g++ -c lexer.cpp -std=c++14 -o build/lexer.o -g
@@ -15,6 +15,9 @@ build/symbols.o: symbols.hpp symbols.cpp
 
 build/intermediate.o: intermediate.hpp intermediate.cpp
 	g++ -c intermediate.cpp -std=c++14 -o build/intermediate.o -g
+
+build/interpreter.o: interpreter.hpp interpreter.cpp
+	g++ -c interpreter.cpp -std=c++14 -o build/interpreter.o -g
 
 build/main.o: main.cpp
 	g++ -c main.cpp -std=c++14 -o build/main.o -g

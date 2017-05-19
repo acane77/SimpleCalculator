@@ -10,5 +10,6 @@
 #include <cctype>
 #include <deque>
 #include <map>
+#include <cstdint>
 
 #endif

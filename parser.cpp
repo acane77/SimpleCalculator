@@ -1,5 +1,6 @@
 #include "parser.hpp"
 #include "intermediate.hpp"
+#include "interpreter.hpp"
 
 namespace Miyuki {
     parser::parser(const char *file) {
@@ -38,6 +39,9 @@ namespace Miyuki {
         root->gen();
         replace();
         print();
+
+        interpreter it(&quads);
+        it.interprete();
     }
 
     Program * parser::parse_program() {
