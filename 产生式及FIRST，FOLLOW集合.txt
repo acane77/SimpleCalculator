@@ -1,0 +1,19 @@
+Program  -> main ( ) Block 				 { Block = newlabel() }		 
+Block    -> '{' Stmts '}' 				 { Stmts.next = Block.next;  }
+		| Stmt 							 { Block.next = Stmt.next = new label(); }
+Stmts    -> Stmt Stmts1					 { Stmt.next = new label(); Stmts1.next = Stmts.next }
+	 	| Stmt 							 { Stmt.next = Stmts.next }
+Stmt     -> if ( Boolean ) Block 	    { Boolean.true = new label(); 
+										  Boolean.false = Block.next = Stmt.next; }
+		  | if ( Boolean ) Block else Block1 {  }
+          | while ( Boolean ) Block
+	  | id = Expr ;
+Else	 -> else Block | e
+Expr      -> Expr + Term
+	  | Expr - Term
+          | Term
+Term      -> Term * Factor
+          | Term / Factor
+          | Factor
+Factor    -> id | num | ( Expr )
+Boolean   -> Expr relop Expr

@@ -1,0 +1,290 @@
+#include "lexer.hpp"
+
+namespace Miyuki {
+    lexer::lexer(const char * file_path) {
+        file.open(file_path, ios_base::in | ios_base::out);
+        if (!file)
+            throw IOException();
+    }
+
+    void lexer::readch() {
+        file.get(peak);
+        column++;
+    }
+
+    void lexer::retract() {
+        file.unget().unget();
+        file.get(peak);
+        column--;
+    }
+
+    token * lexer::scan() {
+        readch();
+        // Process spaces, tabs, newline and comments
+        for (; ; readch()) {
+            if (file.eof())
+                return nullptr;
+            if (peak == ' ' || peak == '\t')
+                continue;
+            else if (peak == '\n') {
+                row++;
+                column = 0;
+            }
+            else
+                break;
+        }
+        //Digits
+        if (isdigit(peak)) {
+            int ival = 0;
+            for (; isdigit(peak); readch()) {
+                ival = ival * 10 + peak - '0';
+            }
+            retract();
+            return new number(ival);
+        }
+        //Indetifers
+        bool reach_end = false;
+        if (isalpha(peak) || peak == '_') {
+            string id = "";
+            for (; isalnum(peak) || peak == '_'; readch()) {
+                if (file.eof()) {
+                    reach_end = true;
+                    break;
+                }
+                id += peak;
+            }
+            if (!reach_end)
+                retract();
+            if (id == "main")
+                return &word::Main;
+            if (id == "int")
+                return &word::Int;
+            if (id == "char")
+                return &word::Char;
+            if (id == "else")
+                return &word::Else;
+            if (id == "for")
+                return &word::For;
+            if (id == "if")
+                return &word::If;
+            if (id == "while")
+                return &word::While;
+            word * t = new word(id, tags::ID);
+            return t;
+        }
+        //Operators
+        if (peak == '=') {
+            return &word::Assign;
+        }
+        if (peak == '+') {
+            return &word::Add;
+        }
+        if (peak == '-') {
+            return &word::Sub;
+        }
+        if (peak == '*') {
+            return &word::Mul;
+        }
+        if (peak == '/') {
+            return &word::Div;
+        }
+        if (peak == '(')
+            return &word::Lb;
+        if (peak == ')')
+            return &word::Rb;
+        if (peak == '{')
+            return &word::Llb;
+        if (peak == '}')
+            return &word::Rlb;
+        if (peak == ';')
+            return &word::Fh;
+        throw SyntaxError((string("unexpected '")+peak+"' in context").c_str());
+    }
+
+    int lexer::getColumn() {
+        return column;
+    }
+
+    int lexer::getRow() {
+        return row;
+    }
+
+    lexer::~lexer() {
+        if (file)
+            file.close();
+    }
+}
+#include "lexer.hpp"
+#include <vector>
+#include <string>
+
+using namespace Miyuki;
+
+int main(){
+    lexer lex("f:/test-lexer.txt");
+    token * tok = nullptr;
+    vector<token *> duals;
+    do {
+        try {
+            tok = lex.scan();
+            if (tok)
+                duals.push_back(tok);
+        }
+        catch (SyntaxError e) {
+            cout << "Error: (at line " << lex.getRow() << ", col " << lex.getColumn() << "): " << e.what() << endl;
+        }
+    }
+    while (tok);
+    for (auto e: duals){
+        if (!e)
+            continue;
+        cout << "(" << e->tag << ", ";
+        if (e->tag == tags::NUMBER) {
+            cout << ((number *)e)->val;
+        }
+        else
+            cout << ((word *)e)->lexeme;
+        cout << ") \n";
+    }
+    getchar();
+    return 0;
+}
+#include "token.hpp"
+
+namespace Miyuki {
+	word
+		word::Main("main", tags::MAIN),
+		word::Int("int", tags::INT),
+		word::Char("char", tags::CHAR),
+		word::If("if", tags::IF),
+		word::Else("else", tags::ELSE),
+		word::For("for", tags::FOR),
+		word::While("while", tags::WHILE),
+
+		word::Assign("=", tags::ASSIGN),
+		word::Add("+", tags::ADD),
+		word::Sub("-", tags::SUB),
+		word::Mul("*", tags::MUL),
+		word::Div("/", tags::DIV),
+                word::Lb("(", tags::LB),
+                word::Rb(")", tags::RB),
+                word::Llb("{", tags::LB),
+                word::Rlb("}", tags::RB),
+                word::Fh(";", tags::FH);
+
+}
+#ifndef _MIYUKI_INCLUDE_HPP
+#define _MIYUKI_INCLUDE_HPP
+
+// Standard library
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <exception>
+#include <cstring>
+#include <cctype>
+
+#endif
+﻿#ifndef _MIYUKI_TAGS_H
+#define _MIYUKI_TAGS_H
+
+namespace Miyuki {
+    namespace tags {
+        enum {
+            // 被词法分析器识别的非终结符号
+            __FLAG_START_TERMINAL = 511,
+            MAIN, INT, CHAR, IF, ELSE, FOR, WHILE, ASSIGN, ADD, SUB, MUL, DIV, LB, RB, LLB, RLB, FH,
+
+            NUMBER, ID
+        };
+    }
+}
+
+#endif
+#ifndef _MIYUKI_DEFINE_HPP
+#define _MIYUKI_DEFINE_HPP
+
+#define THROW_NOT_IMPLEMENTED_EXCEPTION() throw std::runtime_error(std::string(__FUNCTION__) + " is not implemented.");
+
+#endif
+#ifndef _MIYUKI_EXCEPTIONS_HPP
+#define _MIYUKI_EXCEPTIONS_HPP
+
+#include "include.h"
+
+namespace Miyuki {
+	class IOException : public std::exception {
+	public:
+		const char * what() { return "I/O Exception"; }
+	};
+
+	class SyntaxError : public std::exception {
+	public:
+		std::string err_msg;
+		SyntaxError(const char * msg):err_msg(msg) {}
+		const char * what() { return err_msg.c_str(); }
+	};
+}
+
+#endif
+#ifndef _MIYUKI_LEXER_HPP
+#define _MIYUKI_LEXER_HPP
+
+#include "include.h"
+#include "token.hpp"
+#include "exceptions.hpp"
+
+namespace Miyuki {
+	class lexer {
+            char peak=' ';
+            int row=0;
+            int column=0;
+            fstream file;
+
+            void readch();
+            void retract();
+	public:
+            lexer(const char* file_path);
+            ~lexer();
+            token * scan();
+            int getRow();
+            int getColumn();
+	};
+}
+
+#endif
+#ifndef _MIYUKI_TOKEN_HPP
+#define _MIYUKI_TOKEN_HPP
+
+#include "include.h"
+#include "tags.h"
+#include "define.hpp"
+
+namespace Miyuki {
+    using namespace std;
+
+    class token {
+    public:
+        int  tag;
+
+        token(int _tag):tag(_tag) {}
+    };
+
+    class number :public token {
+    public:
+        int val;
+
+        number(int _v) : val(_v), token(tags::NUMBER) { }
+    };
+
+    class word :public token {
+    public:
+        std::string lexeme;
+
+        word(std::string _lexeme, int tag):lexeme(_lexeme), token(tag) {}
+
+        static word Main, Int, Char, If, Else, For, While, Assign, Add, Sub, Mul, Div, Lb, Rb, Llb, Rlb, Fh;
+    };	
+}
+
+#endif
