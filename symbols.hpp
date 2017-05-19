@@ -172,6 +172,12 @@ namespace Miyuki {
         int id;
         Temp() { id = s_tempid++; ftype=tags::TEMP; addr=this; }
     };
+
+    class Label: public Factor {
+    public:
+        int id;
+        Label(int i):id(i) { ftype=tags::LABEL; addr=this; }
+    };
 }
 
 #endif

@@ -9,7 +9,7 @@ namespace Miyuki {
             MAIN, INT, CHAR, IF, ELSE, FOR, WHILE, ASSIGN, ADD, SUB, MUL, DIV, LB, RB, LLB, RLB, FH,
             LT, LTE, GT, GTE, EQ, NEQ, T_EOF,
 
-            NUMBER, ID, TEMP
+            NUMBER, ID, TEMP, LABEL
         };
     }
 }

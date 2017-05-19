@@ -1,14 +1,11 @@
 #include "symbols.hpp"
+#include "intermediate.hpp"
 
 namespace Miyuki {
     int new_label_id = 0;
 
     inline int newlabel() {
         return ++new_label_id;
-    }
-
-    inline void emitLabel(int n) {
-        cout << "L" << n << ":";
     }
 
     Arith::Arith(Arith* a1, Arith* a2, word * o):arith1(a1), arith2(a2), op(o) {
@@ -55,14 +52,19 @@ namespace Miyuki {
     void Boolean::gen(int t, int f) {
         expr1->gen();
         expr2->gen();
-        cout << "\tif ";
 
-        expr1->addr->pAddr();
-        cout << " " << op->lexeme << " ";
-        expr2->addr->pAddr();
+        int opcode =-1;
+        switch(op->tag) {
+        case tags::GT:  opcode=Quad::Opcode::JGT; break;
+        case tags::GTE:  opcode=Quad::Opcode::JGTE; break;
+        case tags::LT:  opcode=Quad::Opcode::JLT; break;
+        case tags::LTE:  opcode=Quad::Opcode::JLTE; break;
+        case tags::EQ:  opcode=Quad::Opcode::JEQ; break;
+        case tags::NEQ:  opcode=Quad::Opcode::JNEQ; break;
+        }
 
-        cout << " goto L" << t << endl;
-        cout << "\tgoto L" << f << endl;
+        EmitQuad(opcode, expr1->addr, expr2->addr, new Label(t));
+        EmitQuad(Quad::Opcode::J, nullptr, nullptr, new Label(f));
     }
 
     void Stmts::gen(int next) {
@@ -74,22 +76,19 @@ namespace Miyuki {
     }
 
     void Arith::gen() {
-
         arith1->gen();
         arith2->gen();
-        cout << "\t";
 
         addr = new Temp();
         addr->gen();
 
-        addr->pAddr();
-        cout << " = ";
+        int opcode = -1;
+        if (op->tag == tags::ADD)   opcode = Quad::Opcode::ADD;
+        else if (op->tag == tags::SUB) opcode = Quad::Opcode::SUB;
+        else if (op->tag == tags::MUL) opcode = Quad::Opcode::MUL;
+        else if (op->tag == tags::DIV) opcode = Quad::Opcode::DIV;
 
-        arith1->addr->pAddr();
-        cout << " " << op->lexeme << " ";
-        arith2->addr->pAddr();
-
-        cout << endl;
+        EmitQuad(opcode, arith1->addr, arith2->addr, addr);
     }
 
     void Factor::pAddr() {
@@ -103,6 +102,9 @@ namespace Miyuki {
         case tags::ID:
             cout << ((ID*)this)->id->lexeme;
             break;
+        case tags::LABEL:
+            cout << "" << ((Label*)this)->id;
+            break;
         }
     }
 
@@ -112,7 +114,9 @@ namespace Miyuki {
 
     void Assign::gen(int next) {
         expr->gen();
-        cout << "\t" << this->wid->lexeme << " = "; expr->addr->pAddr();; cout << endl;
+        //cout << "\t" << this->wid->lexeme << " = "; expr->addr->pAddr();; cout << endl;
+
+        EmitQuad(Quad::Opcode::MOV, expr->addr, nullptr, new ID(wid));
     }
 
     void While::gen(int next) {
@@ -124,7 +128,8 @@ namespace Miyuki {
         cond->gen(btrue, bfalse);
         emitLabel(btrue);
         blk->gen(next);
-        cout << "\tgoto L" << cstart << endl;
+        //cout << "\tgoto L" << cstart << endl;
+        EmitQuad(Quad::Opcode::J, nullptr, nullptr, new Label(cstart));
     }
 
     int Temp::s_tempid = 1;

@@ -8,5 +8,7 @@
 #include <exception>
 #include <cstring>
 #include <cctype>
+#include <deque>
+#include <map>
 
 #endif

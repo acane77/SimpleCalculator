@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "intermediate.hpp"
 
 namespace Miyuki {
     parser::parser(const char *file) {
@@ -33,10 +34,10 @@ namespace Miyuki {
 
     void parser::parse() {
         move();
-        puts("Generating syntax analyse tree...");
         root = parse_program();
-        puts("Generating intermediate code...");
         root->gen();
+        replace();
+        print();
     }
 
     Program * parser::parse_program() {
