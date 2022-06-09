@@ -1,4 +1,5 @@
 parser: build/lexer.o build/token.o build/main.o build/parser.o build/symbols.o build/intermediate.o build/interpreter.o
+	mkdir -p build
 	g++ -o parser build/lexer.o build/token.o build/main.o build/parser.o build/symbols.o build/intermediate.o build/interpreter.o
 
 build/lexer.o: lexer.hpp lexer.cpp
@@ -23,4 +24,4 @@ build/main.o: main.cpp
 	g++ -c main.cpp -std=c++14 -o build/main.o -g
 
 clean:
-	rm *.exe build/*.o -f
+	rm -f *.exe build/*.o
