@@ -39,6 +39,7 @@ namespace Miyuki {
             cond->gen(btrue, bfalse);
             emitLabel(btrue);
             blk->gen(next);
+            EmitQuad(Quad::Opcode::J, nullptr, nullptr, new Label(next));
             emitLabel(bfalse);
             els->gen(next);
             //emitLabel(next);
